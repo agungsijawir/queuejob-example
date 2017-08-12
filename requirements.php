@@ -12,6 +12,7 @@
 
 // you may need to adjust this path to the correct Yii framework path
 $frameworkPath = dirname(__FILE__) . '/vendor/yiisoft/yii2';
+$pheanstalkPath = dirname(__FILE__) . "/vendor/pda/pheanstalk";
 
 if (!is_dir($frameworkPath)) {
     echo '<h1>Error</h1>';
@@ -22,6 +23,26 @@ if (!is_dir($frameworkPath)) {
 
 require_once($frameworkPath . '/requirements/YiiRequirementChecker.php');
 $requirementsChecker = new YiiRequirementChecker();
+
+$configParams = require_once(__DIR__ . '/config/params.php');
+
+require_once(dirname(__FILE__) . '/vendor/autoload.php');
+$pheanstalkInstance = new \Pheanstalk\Pheanstalk($configParams['beanstalkd']['host'], $configParams['beanstalkd']['port']);
+
+if (is_dir($pheanstalkPath)) {
+    $pheanstalkLibMemo = 'Library installed version ' . $pheanstalkInstance::VERSION ;
+} else {
+    $pheanstalkLibMemo = 'Library must be installed properly. Please use `composer install` command.';
+}
+
+$beanstalkdServerStatus = $pheanstalkInstance->getConnection()->isServiceListening();
+if ($beanstalkdServerStatus) {
+    $beanstalkdServerStatusMemo = 'Server is up and running on ' .
+                                    $pheanstalkInstance->getConnection()->getHost() . ':' .
+                                    $pheanstalkInstance->getConnection()->getPort();
+} else {
+    $beanstalkdServerStatusMemo = 'Server must be installed, up and running.';
+}
 
 $gdMemo = $imagickMemo = 'Either GD PHP extension with FreeType support or ImageMagick PHP extension with PNG support is required for image CAPTCHA.';
 $gdOK = $imagickOK = false;
@@ -57,25 +78,11 @@ $requirements = array(
         'by' => 'All DB-related classes',
     ),
     array(
-        'name' => 'PDO SQLite extension',
-        'mandatory' => false,
-        'condition' => extension_loaded('pdo_sqlite'),
-        'by' => 'All DB-related classes',
-        'memo' => 'Required for SQLite database.',
-    ),
-    array(
         'name' => 'PDO MySQL extension',
         'mandatory' => false,
         'condition' => extension_loaded('pdo_mysql'),
         'by' => 'All DB-related classes',
         'memo' => 'Required for MySQL database.',
-    ),
-    array(
-        'name' => 'PDO PostgreSQL extension',
-        'mandatory' => false,
-        'condition' => extension_loaded('pdo_pgsql'),
-        'by' => 'All DB-related classes',
-        'memo' => 'Required for PostgreSQL database.',
     ),
     // Cache :
     array(
@@ -122,6 +129,21 @@ $requirements = array(
         'by' => 'Email sending',
         'memo' => 'PHP mail SMTP server required',
     ),
+    //beanstalkd instance
+    'pheanstalkLibrary' => array(
+        'name' => 'Pheanstalk Library',
+        'mandatory' => true,
+        'condition' => is_dir($pheanstalkPath),
+        'by' => 'Beanstalk',
+        'memo' => $pheanstalkLibMemo
+    ),
+    'beanstalkdServer' => array(
+        'name' => 'Beanstalkd Server',
+        'mandatory' => true,
+        'condition' => $beanstalkdServerStatus,
+        'by' => 'Beanstalk',
+        'memo' => $beanstalkdServerStatusMemo
+    )
 );
 
 // OPcache check

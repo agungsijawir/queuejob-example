@@ -42,7 +42,7 @@ CONFIGURATION
 
 ### Database
 
-Edit the file `config/db.php` with real data, for example:
+Ubah file `config/db.php` dengan pengaturan database:
 
 ```php
 return [
@@ -53,6 +53,8 @@ return [
     'charset' => 'utf8',
 ];
 ```
+
+Cek juga file `config/params.php` untuk konfigurasi `beanstalkd` instance.
 
 **NOTES:**
 - Yii tidak akan membuat database untuk Anda. Proses pembuatan database harus dilakukan secara manual sebelum Anda 
