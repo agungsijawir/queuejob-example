@@ -1,17 +1,21 @@
 {
-    "name": "yiisoft/yii2-app-basic",
-    "description": "Yii 2 Basic Project Template",
-    "keywords": ["yii2", "framework", "basic", "project template"],
-    "homepage": "http://www.yiiframework.com/",
+    "name": "agungsijawir/queuejob-example",
+    "description": "Yii2 Queue Job Example",
+    "keywords": ["yii2", "framework", "basic", "queue", "beanstalkd"],
     "type": "project",
     "license": "BSD-3-Clause",
     "support": {
-        "issues": "https://github.com/yiisoft/yii2/issues?state=open",
-        "forum": "http://www.yiiframework.com/forum/",
-        "wiki": "http://www.yiiframework.com/wiki/",
-        "irc": "irc://irc.freenode.net/yii",
-        "source": "https://github.com/yiisoft/yii2"
+        "issues": "https://github.com/agungsijawir/queuejob-example/issues",
+        "source": "https://github.com/agungsijawir/queuejob-example"
     },
+    "authors": [
+        {
+            "name": "Agung Andika",
+            "email": "agungandika@yiiframework.id",
+            "homepage": "agungandika.com",
+            "role": "Initial Project"
+        }
+    ],
     "prefer-stable": true,
     "minimum-stability": "dev",
     "require": {
@@ -27,7 +31,8 @@
 
         "codeception/base": "^2.2.3",
         "codeception/verify": "~0.3.1",
-        "codeception/specify": "~0.4.3"
+        "codeception/specify": "~0.4.3",
+        "pda/pheanstalk": "~3.1.0"
     },
     "config": {
         "process-timeout": 1800,
