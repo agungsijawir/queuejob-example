@@ -2,9 +2,13 @@
 
 namespace app\controllers;
 
+use app\models\SignupForm;
+use app\models\User;
+use app\utility\SignupMailJob;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
+use yii\web\NotFoundHttpException;
 use yii\web\Response;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
@@ -112,6 +116,73 @@ class SiteController extends Controller
         return $this->render('contact', [
             'model' => $model,
         ]);
+    }
+
+    /**
+     * @return string|Response
+     */
+    public function actionSignup()
+    {
+        $model = new SignupForm();
+        if ($model->load(Yii::$app->request->post())) {
+            if ($user = $model->signup()) {
+                if (Yii::$app->getUser()->login($user)) {
+                    Yii::$app->session->setFlash('signup-info', "An activation mail has been sent to <code>{$model->email}</code>.");
+                    return $this->goHome();
+                }
+            }
+        }
+        return $this->render('signup', [
+            'model' => $model,
+        ]);
+    }
+
+    /**
+     * @param $code
+     *
+     * @return Response
+     * @throws NotFoundHttpException
+     */
+    public function actionActivation($code)
+    {
+        $model = User::findIdentityByAccessToken($code);
+
+        if ($model) {
+            $model->status = User::STATUS_ACTIVE;
+            $model->update(false);
+
+            Yii::$app->session->setFlash('success', "Your account has been activated successfully. Please login using your account.");
+            return $this->redirect(['site/login']);
+        } else {
+            throw new NotFoundHttpException('Invalid activation code given or activation code was expired!');
+        }
+    }
+
+    /**
+     * Perform re-send activation mail.
+     * @param $username
+     *
+     * @return Response
+     * @throws NotFoundHttpException
+     */
+    public function actionResendActivation($username)
+    {
+        $user = User::findByUsername($username);
+
+        $queueSignup = Yii::$app->queueSignup;
+        $resultJob = $queueSignup->push(new SignupMailJob([
+            'username' => $user->username,
+            'email' => $user->email,
+            'auth_key' => $user->auth_key
+        ]));
+
+        if ($resultJob || $user) {
+            Yii::$app->session->setFlash('success', "Activation mail has been sent to {$user->email}! " .
+                "Please check your spam folder if not found on INBOX.");
+            return $this->redirect(['site/index']);
+        } else {
+            throw new NotFoundHttpException('Invalid username');
+        }
     }
 
     /**

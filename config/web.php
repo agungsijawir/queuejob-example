@@ -6,7 +6,7 @@ $db = require __DIR__ . '/db.php';
 $config = [
     'id' => 'basic-queue',
     'basePath' => dirname(__DIR__),
-    'bootstrap' => ['log', 'debug'],
+    'bootstrap' => ['log', 'debug', 'queueSignup'],
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
@@ -18,6 +18,15 @@ $config = [
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
+        ],
+        'queueSignup' => [
+            'class' => \yii\queue\beanstalk\Queue::class,
+            'as log' => \yii\queue\LogBehavior::class,
+
+            // adjust as suited!
+            'host' => 'localhost',
+            'port' => 11300,
+            'tube' => 'queue_signup',
         ],
         'user' => [
             'identityClass' => 'app\models\User',

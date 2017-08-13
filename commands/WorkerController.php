@@ -84,7 +84,7 @@ class WorkerController extends Controller
             } else {
                 $mailData = json_decode($jobData, true, 512, JSON_OBJECT_AS_ARRAY);
 
-                $mailerInstance = Yii::$app->mailer->compose()
+                $mailerInstance = Yii::$app->mailer->compose('user/contact', $mailData) // @app/mail/user/contact
                     ->setTo($mailData['recipientMail'])
                     ->setFrom([$mailData['senderEmail'] => $mailData['senderName']])
                     ->setSubject($mailData['subjectMail'])

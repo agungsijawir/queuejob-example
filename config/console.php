@@ -6,11 +6,20 @@ $db = require __DIR__ . '/db.php';
 $config = [
     'id' => 'basic-queue-console',
     'basePath' => dirname(__DIR__),
-    'bootstrap' => ['log'],
+    'bootstrap' => ['log', 'queueSignup'],
     'controllerNamespace' => 'app\commands',
     'components' => [
         'cache' => [
             'class' => 'yii\caching\FileCache',
+        ],
+        'queueSignup' => [
+            'class' => \yii\queue\beanstalk\Queue::class,
+            'as log' => \yii\queue\LogBehavior::class,
+
+            // adjust as suited!
+            'host' => '127.0.0.1',
+            'port' => 11300,
+            'tube' => 'queue_signup',
         ],
         'log' => [
             'targets' => [
@@ -22,6 +31,14 @@ $config = [
         ],
         'db' => $db,
         'mailer' => [],
+        'urlManager' => [
+            // we need to configure urlManager & baseUrl config for console app
+            'baseUrl' => 'http://awesome.dev/yii2-queue/web/',
+            'enablePrettyUrl' => true,
+            'showScriptName' => false,
+            'rules' => [
+            ],
+        ]
     ],
     'params' => $params,
     /*

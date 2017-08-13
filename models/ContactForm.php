@@ -57,7 +57,8 @@ class ContactForm extends Model
                 'senderName' => $this->name,
                 'senderEmail' => $this->email,
                 'subjectMail' => $this->subject,
-                'bodyMail' => $this->body
+                'bodyMail' => $this->body,
+                'titleMail' => 'Contact Form'
             ];
 
             $beanstalkInstance = new Pheanstalk(Yii::$app->params['beanstalkd']['host'], Yii::$app->params['beanstalkd']['port']);
