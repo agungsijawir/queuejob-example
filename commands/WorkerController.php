@@ -14,8 +14,13 @@ use yii\console\Controller;
  */
 class WorkerController extends Controller
 {
+    const EXIT_SUCCESS = 0;
+    const EXIT_BEANSTALKD_ERROR = 10;
+    const EXIT_BEANSTALKD_WORKER_ERROR = 11;
+
     private $_pheanstalk = null;
     private $_pheanstalk_connection = false;
+    private $_worker_error_job_limit = 0;
 
     public function __construct($id, Module $module, array $config = [])
     {
@@ -27,6 +32,8 @@ class WorkerController extends Controller
         );
 
         $this->_pheanstalk_connection = $this->_pheanstalk->getConnection()->isServiceListening();
+
+        $this->_worker_error_job_limit = Yii::$app->params['beanstalkd']['errorJobsLimit'];
     }
 
     /**
@@ -34,13 +41,20 @@ class WorkerController extends Controller
      */
     public function actionMailerContact()
     {
-        echo "[INFO] Worker Mailer Contact started!" . PHP_EOL;
+        $failedJob = 0;
 
-        do {
-            $job = $this->_pheanstalk
-                ->watch('contact_tube')
-                ->ignore('default')
-                ->reserve();
+        if ($this->_pheanstalk_connection == false) {
+            $this->writeOutput("No beanstalkd service running. Please check and try again!", "ERROR");
+            exit(self::EXIT_BEANSTALKD_ERROR);
+        }
+
+        $this->writeOutput("Worker Mailer Contact started!", "INFO");
+
+        $bean = $this->_pheanstalk
+            ->watch('contact_tube') // name of tube
+            ->ignore('default'); // ignore this tube
+
+        while ($job = $bean->reserve()) {
 
             // getting job
             $jobData = $job->getData();
@@ -59,16 +73,32 @@ class WorkerController extends Controller
                     ->send();
 
                 if ($mailerInstance) {
-                    echo "[INFO] Email Contact from ({$mailData['senderName']} [{$mailData['senderEmail']}]) sent!" . PHP_EOL;
+                    $this->writeOutput("Email Contact from ({$mailData['senderName']} [{$mailData['senderEmail']}]) sent!", "INFO");
                 } else {
-                    echo "[WARNING] Fail to Sent Email Contact from ({$mailData['senderName']} [{$mailData['senderEmail']}]) sent!" . PHP_EOL;
+                    $this->writeOutput("Fail to Send Email Contact from ({$mailData['senderName']} [{$mailData['senderEmail']}])!", "ERROR");
+                    $failedJob++;
                 }
 
                 // delete the job after send
                 $this->_pheanstalk->delete($job);
+
+                // if worker fail to process job more than 5 times, exit worker and
+                // let supervisord re-start the process!
+                if ($failedJob > $this->_worker_error_job_limit) {
+                    exit(self::EXIT_BEANSTALKD_WORKER_ERROR);
+                }
             }
             // relax for 5 seconds
             sleep(5);
-        } while ($this->_pheanstalk_connection);
+        }
+    }
+
+    /**
+     * Write debug output to screen
+     * @param $message
+     * @param $type
+     */
+    private function writeOutput($message, $type) {
+        echo "[" . $type . "] " . date('Y-m-d H:i:s') . " - {$message}" . PHP_EOL;
     }
 }
