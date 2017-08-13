@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use Pheanstalk\Pheanstalk;
 use Yii;
 use yii\base\Model;
 
@@ -15,7 +16,6 @@ class ContactForm extends Model
     public $subject;
     public $body;
     public $verifyCode;
-
 
     /**
      * @return array the validation rules.
@@ -50,14 +50,18 @@ class ContactForm extends Model
     public function contact($email)
     {
         if ($this->validate()) {
-            Yii::$app->mailer->compose()
-                ->setTo($email)
-                ->setFrom([$this->email => $this->name])
-                ->setSubject($this->subject)
-                ->setTextBody($this->body)
-                ->send();
+            $emailDetails = [
+                'recipientMail' => $email,
+                'senderName' => $this->name,
+                'senderEmail' => $this->email,
+                'subjectMail' => $this->subject,
+                'bodyMail' => $this->body
+            ];
 
-            return true;
+            $beanstalkInstance = new Pheanstalk(Yii::$app->params['beanstalkd']['host'], Yii::$app->params['beanstalkd']['port']);
+            $sendJob = $beanstalkInstance->useTube('contact_tube')->put(json_encode($emailDetails));
+
+            return $sendJob;
         }
         return false;
     }

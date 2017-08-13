@@ -4,7 +4,7 @@ $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
 
 $config = [
-    'id' => 'basic-console',
+    'id' => 'basic-queue-console',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
     'controllerNamespace' => 'app\commands',
@@ -21,6 +21,7 @@ $config = [
             ],
         ],
         'db' => $db,
+        'mailer' => [],
     ],
     'params' => $params,
     /*
@@ -31,6 +32,9 @@ $config = [
     ],
     */
 ];
+
+$mailerComponent = require_once(__DIR__ . '/mailer.php');
+$config['components']['mailer'] = $mailerComponent;
 
 if (YII_ENV_DEV) {
     // configuration adjustments for 'dev' environment

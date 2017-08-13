@@ -1,0 +1,12 @@
+<IfModule mod_rewrite.c>
+    Options +FollowSymlinks
+    RewriteEngine On
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # You may adjust this line to comply with your server directory configuration!
+    RewriteRule . /yii2-queue/web/index.php
+</IfModule>
