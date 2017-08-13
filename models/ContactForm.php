@@ -43,7 +43,9 @@ class ContactForm extends Model
     }
 
     /**
-     * Sends an email to the specified email address using the information collected by this model.
+     * Sends an email job to worker with some email details using the information collected by this model.
+     * Note that this action act as "PRODUCER"
+     *
      * @param string $email the target email address
      * @return bool whether the model passes validation
      */
