@@ -1,7 +1,7 @@
 <?php
 namespace app\models;
 
-use app\utility\SignupMailJob;
+use app\jobs\SignupMailJob;
 use Yii;
 use yii\base\Model;
 use yii\queue\Queue;
@@ -54,7 +54,7 @@ class SignupForm extends Model
                 /**
                  * @var Queue $queueSignup
                  */
-                $queueSignup = Yii::$app->queueSignup;
+                $queueSignup = Yii::$app->queueNotification;
                 $resultJob = $queueSignup->push(new SignupMailJob([
                     'username' => $user->username,
                     'email' => $user->email,

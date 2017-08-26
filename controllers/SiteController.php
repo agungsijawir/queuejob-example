@@ -2,9 +2,10 @@
 
 namespace app\controllers;
 
+use app\models\ProfileForm;
 use app\models\SignupForm;
 use app\models\User;
-use app\utility\SignupMailJob;
+use app\jobs\SignupMailJob;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
@@ -169,7 +170,7 @@ class SiteController extends Controller
     {
         $user = User::findByUsername($username);
 
-        $queueSignup = Yii::$app->queueSignup;
+        $queueSignup = Yii::$app->queueNotification;
         $resultJob = $queueSignup->push(new SignupMailJob([
             'username' => $user->username,
             'email' => $user->email,
@@ -193,5 +194,25 @@ class SiteController extends Controller
     public function actionAbout()
     {
         return $this->render('about');
+    }
+
+    /**
+     * @return string|Response
+     */
+    public function actionProfile()
+    {
+        $model = new ProfileForm();
+        $model->email = Yii::$app->user->identity->email;
+        $model->username = Yii::$app->user->identity->username;
+
+        if ($model->load(Yii::$app->request->post())) {
+            if ($user = $model->update()) {
+                Yii::$app->session->setFlash('signup-info', "Profile updated.");
+                return $this->goHome();
+            }
+        }
+        return $this->render('profile', [
+            'model' => $model,
+        ]);
     }
 }

@@ -6,7 +6,7 @@ $db = require __DIR__ . '/db.php';
 $config = [
     'id' => 'basic-queue',
     'basePath' => dirname(__DIR__),
-    'bootstrap' => ['log', 'debug', 'queueSignup'],
+    'bootstrap' => ['log', 'debug', 'queueNotification'],
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
@@ -19,14 +19,14 @@ $config = [
         'cache' => [
             'class' => 'yii\caching\FileCache',
         ],
-        'queueSignup' => [
+        'queueNotification' => [
             'class' => \yii\queue\beanstalk\Queue::class,
             'as log' => \yii\queue\LogBehavior::class,
 
             // adjust as suited!
             'host' => 'localhost',
             'port' => 11300,
-            'tube' => 'queue_signup',
+            'tube' => 'queue_notification',
         ],
         'user' => [
             'identityClass' => 'app\models\User',
@@ -62,13 +62,25 @@ if (YII_ENV_DEV) {
         'class' => 'yii\debug\Module',
         // uncomment the following to add your IP if you are not connecting from localhost.
         'allowedIPs' => ['127.0.0.1', '::1', '192.168.56.1'],
+
+        // add panels for Queue :)
+        'panels' => [
+            'queue' => \yii\queue\debug\Panel::class,
+        ],
     ];
 
     $config['bootstrap'][] = 'gii';
     $config['modules']['gii'] = [
         'class' => 'yii\gii\Module',
         // uncomment the following to add your IP if you are not connecting from localhost.
-        //'allowedIPs' => ['127.0.0.1', '::1'],
+        'allowedIPs' => ['127.0.0.1', '::1', '192.168.56.1'],
+
+        // generators for Jobs Queue
+        'generators' => [
+            'job' => [
+                'class' => \yii\queue\gii\Generator::class,
+            ],
+        ],
     ];
 }
 

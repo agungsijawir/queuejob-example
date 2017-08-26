@@ -6,20 +6,20 @@ $db = require __DIR__ . '/db.php';
 $config = [
     'id' => 'basic-queue-console',
     'basePath' => dirname(__DIR__),
-    'bootstrap' => ['log', 'queueSignup'],
+    'bootstrap' => ['log', 'queueNotification'],
     'controllerNamespace' => 'app\commands',
     'components' => [
         'cache' => [
             'class' => 'yii\caching\FileCache',
         ],
-        'queueSignup' => [
+        'queueNotification' => [
             'class' => \yii\queue\beanstalk\Queue::class,
             'as log' => \yii\queue\LogBehavior::class,
 
             // adjust as suited!
             'host' => '127.0.0.1',
             'port' => 11300,
-            'tube' => 'queue_signup',
+            'tube' => 'queue_notification',
         ],
         'log' => [
             'targets' => [

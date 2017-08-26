@@ -6,16 +6,16 @@
  * Time: 9:11 PM
  */
 
-namespace app\utility;
+namespace app\jobs;
 
 
 use Yii;
 use yii\base\Object;
 use yii\helpers\Html;
-use yii\queue\Job;
 use yii\queue\Queue;
+use yii\queue\RetryableJob;
 
-class SignupMailJob extends Object implements Job
+class SignupMailJob extends Object implements RetryableJob
 {
     /**
      * @var string Username Recipient
@@ -59,5 +59,21 @@ class SignupMailJob extends Object implements Job
         } else {
             echo "[ERROR] Failed to send email for {$this->username} / email {$this->email} !" . PHP_EOL;
         }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getTtr()
+    {
+        return 60;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function canRetry($attempt, $error)
+    {
+        return $attempt < 3;
     }
 }
